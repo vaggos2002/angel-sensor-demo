@@ -50,11 +50,7 @@ if __name__=="__main__":
     htid = AssignedNumbers.healthThermometer # service Health Thermometer 
     httid = AssignedNumbers.temperatureMeasurement # characteristic
 
-    hrmid = AssignedNumbers.heart_rate
-    hrmmid = AssignedNumbers.heart_rate_measurement
-
     hrm = None
-
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--address', help='MAC address for the device to program, e.g. 00:07:80:AB:CD:EF')
