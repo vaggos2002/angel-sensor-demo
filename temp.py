@@ -1,7 +1,18 @@
-from bluepy.bluepy.btle import Peripheral, ADDR_TYPE_PUBLIC, AssignedNumbers, DefaultDelegate
+#!/usr/bin/python
+#
+# Getting the temperature from the Angel Senor M1 via bluepy
+# 
 
 import time
 import binascii
+import argparse
+
+try:
+    from bluepy.btle import Peripheral, ADDR_TYPE_PUBLIC, AssignedNumbers, DefaultDelegate
+except ImportError:
+    from bluepy.bluepy.btle import Peripheral, ADDR_TYPE_PUBLIC, AssignedNumbers, DefaultDelegate
+
+
 
 class HRM(Peripheral):
 
@@ -43,17 +54,19 @@ if __name__=="__main__":
     htid = AssignedNumbers.healthThermometer # service Health Thermometer 
     httid = AssignedNumbers.temperatureMeasurement # characteristic
 
-    hrmid = AssignedNumbers.heart_rate
-    hrmmid = AssignedNumbers.heart_rate_measurement
-
     hrm = None
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-a', '--address', help='MAC address for the device to program, e.g. 00:07:80:AB:CD:EF')
+    args = parser.parse_args()
+
 
     try:
         
-        hrm = HRM('00:07:80:02:F3:8C')
-        print('Device is connected')
+        hrm = HRM(args.address)
+        print('Device is connected.')
         hrm.setDelegate(heartDelegate())
-        print('Deleagate was set')
+        print('Deleagate was set.')
 
         service, = [s for s in hrm.getServices() if s.uuid==htid] # done
         ccc, = service.getCharacteristics(forUUID=str(httid))  #d one
@@ -68,8 +81,7 @@ if __name__=="__main__":
             
         while True:
             hrm.waitForNotifications(2.)
-            print('Last temp: {0}'.format(hrm.delegate.getlastbeat()))
-         
+            print('Temperature: {0} Celsius'.format(hrm.delegate.getlastbeat()))
 
     finally:
         if hrm:
