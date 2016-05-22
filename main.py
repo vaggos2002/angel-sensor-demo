@@ -84,6 +84,9 @@ if __name__=="__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--address', help='MAC address for the device to program, e.g. 00:07:80:AB:CD:EF')
+    parser.add_argument('-T', '--temperature', action='store_true', help='Returns the temperature in celcius')
+    parser.add_argument('-H', '--heartrate', action='store_true', help='Returns the heart rate in beats per minute')
+    parser.add_argument('-S', '--stepscount', action='store_true', help='Returns the steps count')
     args = parser.parse_args()
 
     try:
@@ -97,9 +100,12 @@ if __name__=="__main__":
         hr_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[1][2])
         sc_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[2][2])
 
-        hrm.writeCharacteristic(temp_handle, '\x02', True) # for TEMP we have indication
-        hrm.writeCharacteristic(hr_handle, '\x01', True) # for HR we have notification
-        hrm.writeCharacteristic(sc_handle, '\x01', True) # for Step count we have notification
+        if args.temperature:
+            hrm.writeCharacteristic(temp_handle, '\x02', True) # for TEMP we have indication
+        if args.heartrate:    
+            hrm.writeCharacteristic(hr_handle, '\x01', True) # for HR we have notification
+        if args.stepscount:    
+            hrm.writeCharacteristic(sc_handle, '\x01', True) # for Step count we have notification
             
         while True:
             hrm.waitForNotifications(1.)
