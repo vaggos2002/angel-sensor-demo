@@ -17,6 +17,7 @@ Get data from :
 - heart rate
 - steps 
 - accelerator energy magnitude
+- battery
 
 Exporting data to csv
 

@@ -80,6 +80,12 @@ class generalDelegate(DefaultDelegate):
             value = int(value, 16)
             print('Steps : {0}'.format(value))
             self.csvlog.add_log('steps', value)
+
+        if cHandle == 54:
+            value = binascii.b2a_hex(data[::-1])
+            value = str(int(value, 16)) + '%'
+            print('Battery : {0}'.format(value))
+            self.csvlog.add_log('battery', value)
         
         if(data[0] == '\x14'):
             self.message = "Connection Lost"
@@ -117,6 +123,7 @@ if __name__=="__main__":
         [3, 'Activity Monitor - Acceleration Energy Magnitude', '68b52738-4a04-40e1-8f83-337a29c3284d', '9e3bd0d7-bdd8-41fd-af1f-5e99679183ff' ],
         [4, 'Blood Oxygen Saturation Service', '902dcf38-ccc0-4902-b22c-70cab5ee5df2', 'b269c33f-df6b-4c32-801d-1b963190bc71' ],
         [5, 'Optical Waveform Characteristic', '481d178c-10dd-11e4-b514-b2227cce2b54', '334c0be8-76f9-458b-bb2e-7df2b486b4d7' ],
+        [6, 'Battery', '0000180f-0000-1000-8000-00805f9b34fb', '' ],
     ]
 
     hrm = None
@@ -131,6 +138,7 @@ if __name__=="__main__":
     parser.add_argument('-S', '--stepscount', action='store_true', help='Returns the steps count')
     parser.add_argument('-A', '--acceleratorenergymagnitude', action='store_true', help='Returns the accelerator energy magnitude')
     parser.add_argument('-P', '--opticalwave', action='store_true', help='Returns the Optical Wave')
+    parser.add_argument('-B', '--battery', action='store_true', help='Returns Battery')
     args = parser.parse_args()
 
     try:
@@ -156,7 +164,9 @@ if __name__=="__main__":
         if args.opticalwave:
             op_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[5][2])
             hrm.writeCharacteristic(op_handle, '\x01', True) # for TEMP we have notification  
-
+        if args.battery:
+            br_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[6][2])
+            hrm.writeCharacteristic(br_handle, '\x01', True) # for TEMP we have notification 
 
         while True:
             hrm.waitForNotifications(1.)
