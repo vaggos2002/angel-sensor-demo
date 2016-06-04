@@ -11,14 +11,15 @@ Getting measurements from the Angel Senor M1 via bluepy
 
 import os
 import datetime
+import time
 import csv
 import binascii
 import argparse
 
 try:
-    from bluepy.btle import Peripheral, ADDR_TYPE_PUBLIC, AssignedNumbers, DefaultDelegate
+    from bluepy.btle import Peripheral, ADDR_TYPE_PUBLIC, AssignedNumbers, DefaultDelegate, BTLEException
 except ImportError:
-    from bluepy.bluepy.btle import Peripheral, ADDR_TYPE_PUBLIC, AssignedNumbers, DefaultDelegate
+    from bluepy.bluepy.btle import Peripheral, ADDR_TYPE_PUBLIC, AssignedNumbers, DefaultDelegate, BTLEException
 
 
 
@@ -41,8 +42,14 @@ class csvLogger():
 class HRM(Peripheral):
 
     def __init__(self, addr):
-        Peripheral.__init__(self, addr, addrType=ADDR_TYPE_PUBLIC)
-
+        print("Press the Angel Sensor's button to continue...")
+        while True:
+            try:
+                Peripheral.__init__(self, addr, addrType=ADDR_TYPE_PUBLIC)
+            except BTLEException:
+                time.sleep(0.5)
+                continue
+            break
 
 class generalDelegate(DefaultDelegate):
     message = 0
@@ -134,7 +141,6 @@ if __name__=="__main__":
 
         hrm.setDelegate(generalDelegate(csvlog))
 
-
         if args.temperature:
             temp_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[0][2])
             hrm.writeCharacteristic(temp_handle, '\x02', True) # for TEMP we have indication
@@ -150,7 +156,6 @@ if __name__=="__main__":
         if args.opticalwave:
             op_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[5][2])
             hrm.writeCharacteristic(op_handle, '\x01', True) # for TEMP we have notification  
-
 
 
         while True:
