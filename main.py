@@ -10,6 +10,7 @@ Getting measurements from the Angel Senor M1 via bluepy
 """
 
 import os
+import struct
 import datetime
 import time
 import csv
@@ -86,13 +87,25 @@ class generalDelegate(DefaultDelegate):
             value = str(int(value, 16)) + '%'
             print('Battery : {0}'.format(value))
             self.csvlog.add_log('battery', value)
+
+        if cHandle == 63:
+            basic = binascii.b2a_hex(data)
+            n = 6
+            splited = [basic[i:i+n] for i in range(0, len(basic), n)]
+            for value in splited[:-1]:
+                value = str(int(value[::-1], 16))
+                print('Activity Waveform : {0}'.format(value))
+                self.csvlog.add_log('activity_waveform', value)
         
         if(data[0] == '\x14'):
+            print("Connection Lost")
             self.message = "Connection Lost"
         if(data[0] == '\x16'):
+            print(str(struct.unpack("B", data[1])[0]))
             self.message = str(struct.unpack("B", data[1])[0])
         if(data[0] == '\x06'):
-           self.message = "Booting"
+            print("Booting")
+            self.message = "Booting"
         
 
     def getlastbeat(self):
@@ -103,16 +116,37 @@ def get_chr_handle(hrm, service_id, characteristic_id):
     '''TODO: Get the Characteristic's handle number for a service'''
     service, = [s for s in hrm.getServices() if s.uuid==service_id]
     desc = hrm.getDescriptors(service.hndStart, service.hndEnd)
-    d, = [d for d in desc if d.uuid==characteristic_id]
-    return d.handle
+    d = [d for d in desc if d.uuid.getCommonName()==characteristic_id]
+    if len(d) > 1:
+        raise Exception('More than one characteristic was found')
+    return d[0].handle
 
-def get_ccc_handle(hrm, service_id):
+def get_characteristic_by_handle(hrm, service_id, handle):
+    '''Return the characteristic based the handle'''
+    service, = [s for s in hrm.getServices() if s.uuid==service_id]
+    desc = hrm.getDescriptors(service.hndStart, service.hndEnd)
+    characteristic = None
+    for d_char in desc:
+        if d_char.handle == handle:
+            characteristic = d_char
+    return characteristic
+        
+
+def get_ccc_handle(hrm, service_id, characteristic_id=None ):
     '''Get the Client Characteristic Configuration's handle number for a service'''
     cccid = AssignedNumbers.client_characteristic_configuration
     service, = [s for s in hrm.getServices() if s.uuid==service_id]
     desc = hrm.getDescriptors(service.hndStart, service.hndEnd)
-    d, = [d for d in desc if d.uuid==cccid]
-    return d.handle
+    d = [d for d in desc if d.uuid==cccid]
+    right_ccc_d = None
+    if len(d) >= 1:
+        for ccc_d in d:
+            prev_ccc_d =  get_characteristic_by_handle(hrm, service_id, int(ccc_d.handle) - 2)
+            if prev_ccc_d.uuid.getCommonName() == characteristic_id:
+                right_ccc_d = ccc_d
+    else: 
+        right_ccc_d = d[0]
+    return right_ccc_d.handle
 
 if __name__=="__main__":
     # Description, Service, Characteristic
@@ -124,6 +158,8 @@ if __name__=="__main__":
         [4, 'Blood Oxygen Saturation Service', '902dcf38-ccc0-4902-b22c-70cab5ee5df2', 'b269c33f-df6b-4c32-801d-1b963190bc71' ],
         [5, 'Optical Waveform Characteristic', '481d178c-10dd-11e4-b514-b2227cce2b54', '334c0be8-76f9-458b-bb2e-7df2b486b4d7' ],
         [6, 'Battery', '0000180f-0000-1000-8000-00805f9b34fb', '' ],
+        [7, 'Acceleration Waveform', '481d178c-10dd-11e4-b514-b2227cce2b54', '4e92f4ab-c01b-4b5a-b328-699856a7c2ee' ],
+        [8, 'Acceleration Waveform Signal Feature', '481d178c-10dd-11e4-b514-b2227cce2b54', '4cb32ae6-0cfe-47dc-a4f6-59f52cdc2910' ],
     ]
 
     hrm = None
@@ -137,6 +173,7 @@ if __name__=="__main__":
     parser.add_argument('-O', '--oxygensaturation', action='store_true', help='Returns the Blood Oxygen Saturation in percent')
     parser.add_argument('-S', '--stepscount', action='store_true', help='Returns the steps count')
     parser.add_argument('-A', '--acceleratorenergymagnitude', action='store_true', help='Returns the accelerator energy magnitude')
+    parser.add_argument('-C', '--accelerationwaveform', action='store_true', help='Returns the acceleration wave form')
     parser.add_argument('-P', '--opticalwave', action='store_true', help='Returns the Optical Wave')
     parser.add_argument('-B', '--battery', action='store_true', help='Returns Battery')
     args = parser.parse_args()
@@ -163,6 +200,9 @@ if __name__=="__main__":
             hrm.writeCharacteristic(os_handle, '\x02', True) # for TEMP we have indication            
         if args.opticalwave:
             op_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[5][2])
+            hrm.writeCharacteristic(op_handle, '\x01', True) # for TEMP we have notification
+        if args.accelerationwaveform:
+            op_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[7][2], MEASUREMENTS_LIST[7][3])
             hrm.writeCharacteristic(op_handle, '\x01', True) # for TEMP we have notification  
         if args.battery:
             br_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[6][2])
@@ -175,7 +215,13 @@ if __name__=="__main__":
                 value = binascii.b2a_hex(hrm.readCharacteristic(am_handle)[::-1])
                 value = int(value, 16)
                 print('Activity : {0}'.format(value))
-                csvlog.add_log('steps', value)
+                csvlog.add_log('activity', value)
+            if args.accelerationwaveform:
+                am_handle = get_chr_handle(hrm, MEASUREMENTS_LIST[8][2], MEASUREMENTS_LIST[8][3])
+                value = binascii.b2a_hex(hrm.readCharacteristic(am_handle)[::-1])
+                value = int(value, 16)
+                print('Waveform Signal Feature : {0}'.format(value))
+                csvlog.add_log('waveform_singal_feature', value)
 
     except Exception as er:
         if hrm:
