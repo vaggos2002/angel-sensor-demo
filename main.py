@@ -89,12 +89,12 @@ class generalDelegate(DefaultDelegate):
             self.csvlog.add_log('battery', value)
 
         if cHandle == 63:
-            basic = binascii.b2a_hex(data)
+            basic = binascii.b2a_hex(data[::-1])
             n = 6
             splited = [basic[i:i+n] for i in range(0, len(basic), n)]
-            for value in splited[:-1]:
-                value = str(int(value[::-1], 16))
-                print('Activity Waveform : {0}'.format(value))
+            for value in splited:
+                value = str(int(value, 16))
+                print('Activity Waveform : {0}'.format( value))
                 self.csvlog.add_log('activity_waveform', value)
         
         if(data[0] == '\x14'):
@@ -216,12 +216,12 @@ if __name__=="__main__":
                 value = int(value, 16)
                 print('Activity : {0}'.format(value))
                 csvlog.add_log('activity', value)
-            if args.accelerationwaveform:
-                am_handle = get_chr_handle(hrm, MEASUREMENTS_LIST[8][2], MEASUREMENTS_LIST[8][3])
-                value = binascii.b2a_hex(hrm.readCharacteristic(am_handle)[::-1])
-                value = int(value, 16)
-                print('Waveform Signal Feature : {0}'.format(value))
-                csvlog.add_log('waveform_singal_feature', value)
+            #if args.accelerationwaveform:
+            #    am_handle = get_chr_handle(hrm, MEASUREMENTS_LIST[8][2], MEASUREMENTS_LIST[8][3])
+            #    value = binascii.b2a_hex(hrm.readCharacteristic(am_handle)[::-1])
+            #    value = int(value, 16)
+            #    print('Waveform Signal Feature : {0}'.format(value))
+            #    csvlog.add_log('waveform_singal_feature', value)
 
     except Exception as er:
         if hrm:
