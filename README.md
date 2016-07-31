@@ -32,24 +32,26 @@ To install the API from the source :
 
 Usage
 -----
-usage: main.py [-h] [-a ADDRESS] [-o] [-T] [-H] [-O] [-S] [-A] [-C] [-c] [-P] [-B]
+Usage:
+   
+   usage: main.py [-h] [-a ADDRESS] [-o] [-T] [-H] [-O] [-S] [-A] [-C] [-c] [-P] [-B]
 
-optional arguments:
-  -h, --help             show this help message and exit
-  -a ADDRESS, --address  ADDRESS MAC address for the device to program, e.g. 00:07:80:AB:CD:EF
-  -o, --output           Store the measurements to the templog.csv file.
-  -T, --temperature      Returns the temperature in celcius
-  -H, --heartrate        Returns the heart rate in beats per minute
-  -O, --oxygensaturation Returns the Blood Oxygen Saturation in percent
-  -S, --stepscount       Returns the steps count
-  -A, --acceleratorenergymagnitude
-        		Returns the accelerator energy magnitude
-  -C, --accelerationwaveform
-                        Returns the acceleration wave form
-  -c, --accelerationwavexyz
-                        Returns the acceleration wave form in x-y-z
-  -P, --opticalwave     Returns the Optical Wave
-  -B, --battery         Returns Battery
+   optional arguments:
+    -h, --help             show this help message and exit
+    -a ADDRESS, --address  ADDRESS MAC address for the device to program, e.g. 00:07:80:AB:CD:EF
+    -o, --output           Store the measurements to the templog.csv file.
+    -T, --temperature      Returns the temperature in celcius
+    -H, --heartrate        Returns the heart rate in beats per minute
+    -O, --oxygensaturation Returns the Blood Oxygen Saturation in percent
+    -S, --stepscount       Returns the steps count
+    -A, --acceleratorenergymagnitude
+                           Returns the accelerator energy magnitude
+    -C, --accelerationwaveform
+                           Returns the acceleration wave form
+    -c, --accelerationwavexyz
+                           Returns the acceleration wave form in x-y-z
+    -P, --opticalwave     Returns the Optical Wave
+    -B, --battery         Returns Battery
 
 To get the temperature :
 
