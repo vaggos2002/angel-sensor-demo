@@ -137,14 +137,15 @@ def get_ccc_handle(hrm, service_id, characteristic_id=None ):
     cccid = AssignedNumbers.client_characteristic_configuration
     service, = [s for s in hrm.getServices() if s.uuid==service_id]
     desc = hrm.getDescriptors(service.hndStart, service.hndEnd)
+    #print([d.uuid.getCommonName() for d in desc ])
     d = [d for d in desc if d.uuid==cccid]
     right_ccc_d = None
-    if len(d) >= 1:
+    if len(d) >= 2:
         for ccc_d in d:
             prev_ccc_d =  get_characteristic_by_handle(hrm, service_id, int(ccc_d.handle) - 2)
             if prev_ccc_d.uuid.getCommonName() == characteristic_id:
                 right_ccc_d = ccc_d
-    else: 
+    else:
         right_ccc_d = d[0]
     return right_ccc_d.handle
 
@@ -174,6 +175,7 @@ if __name__=="__main__":
     parser.add_argument('-S', '--stepscount', action='store_true', help='Returns the steps count')
     parser.add_argument('-A', '--acceleratorenergymagnitude', action='store_true', help='Returns the accelerator energy magnitude')
     parser.add_argument('-C', '--accelerationwaveform', action='store_true', help='Returns the acceleration wave form')
+    parser.add_argument('-c', '--accelerationwavexyz', action='store_true', help='Returns the acceleration wave form in x-y-z')
     parser.add_argument('-P', '--opticalwave', action='store_true', help='Returns the Optical Wave')
     parser.add_argument('-B', '--battery', action='store_true', help='Returns Battery')
     args = parser.parse_args()
@@ -187,7 +189,7 @@ if __name__=="__main__":
         hrm.setDelegate(generalDelegate(csvlog))
 
         if args.temperature:
-            temp_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[0][2])
+            temp_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[0][2], MEASUREMENTS_LIST[0][3])
             hrm.writeCharacteristic(temp_handle, '\x02', True) # for TEMP we have indication
         if args.heartrate:
             hr_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[1][2]) 
@@ -204,6 +206,12 @@ if __name__=="__main__":
         if args.accelerationwaveform:
             op_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[7][2], MEASUREMENTS_LIST[7][3])
             hrm.writeCharacteristic(op_handle, '\x01', True) # for TEMP we have notification  
+        if args.accelerationwavexyz:
+            am_handle = get_chr_handle(hrm, MEASUREMENTS_LIST[8][2], MEASUREMENTS_LIST[8][3])
+            value = binascii.b2a_hex(hrm.readCharacteristic(am_handle))
+            #value = int(value, 16)
+            print('Activity : {0}'.format(value))
+            #hrm.writeCharacteristic(op_handle, '\x01', True) # for TEMP we have notification              
         if args.battery:
             br_handle = get_ccc_handle(hrm, MEASUREMENTS_LIST[6][2])
             hrm.writeCharacteristic(br_handle, '\x01', True) # for TEMP we have notification 
