@@ -32,11 +32,11 @@ To install the API from the source :
 
 Usage
 -----
-Usage:
+Usage :
    
-   usage: main.py [-h] [-a ADDRESS] [-o] [-T] [-H] [-O] [-S] [-A] [-C] [-c] [-P] [-B]
+    usage: main.py [-h] [-a ADDRESS] [-o] [-T] [-H] [-O] [-S] [-A] [-C] [-c] [-P] [-B]
 
-   optional arguments:
+    optional arguments:
     -h, --help             show this help message and exit
     -a ADDRESS, --address  ADDRESS MAC address for the device to program, e.g. 00:07:80:AB:CD:EF
     -o, --output           Store the measurements to the templog.csv file.
