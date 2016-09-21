@@ -36,7 +36,7 @@ class csvLogger():
         row = [datetime.datetime.utcnow(), descr, content]    
         if not self.path:
             if self.enable:
-                with open('templog.csv', 'a') as f:
+                with open('templog.csv', 'w+') as f:
                     w = csv.writer(f)
                     w.writerow(row)
 
